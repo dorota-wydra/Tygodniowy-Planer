@@ -1,0 +1,79 @@
+1.8 INTELIGENTNE PRZYPOMNIENIA
+Cel funkcji:
+Przypomnienia mają pomagać użytkowniczce wykonać zaplanowany trening albo łatwo zdecydować, co zrobić z niewykonanym treningiem. Mają wspierać, a nie zawstydzać.
+Zakres funkcji:
+Dodaj system przypomnień oparty na zaplanowanych treningach.
+Użytkowniczka powinna móc włączyć lub wyłączyć przypomnienia w ustawieniach.
+Ustawienia przypomnień:
+- globalne włącz/wyłącz,
+- domyślna godzina przypomnienia przed treningiem,
+- możliwość ustawienia przypomnienia przy konkretnym treningu,
+- przypomnienie wieczorne dla niewykonanych treningów,
+- możliwość wyłączenia przypomnień dla danego typu aktywności.
+Typy przypomnień:
+1. Przypomnienie przed treningiem
+Jeśli trening ma ustawioną godzinę, pokaż przypomnienie np. 30 minut wcześniej.
+Przykład:
+„Dzisiaj o 18.00 czeka Cię trening siłowy 💪”
+2. Przypomnienie dzienne
+Jeśli trening nie ma ustawionej godziny, pokaż przypomnienie o domyślnej godzinie wybranej w ustawieniach.
+Przykład:
+„Masz dziś zaplanowany bieg. Spokojnie, wystarczy zacząć od pierwszego kroku 🏃”
+3. Przypomnienie wieczorne
+Jeśli do wybranej godziny wieczornej trening nie został oznaczony jako wykonany, pokaż komunikat:
+„Ten trening nie jest jeszcze oznaczony jako wykonany. Co z nim zrobić?”
+Akcje:
+- Oznacz jako wykonany,
+- Przenieś na jutro,
+- Oznacz jako pominięty,
+- Przypomnij później.
+4. Przypomnienie o przeniesionym treningu
+Jeśli trening został przeniesiony, pokaż subtelną informację w nowym dniu:
+„To trening przeniesiony z wtorku.”
+UX komunikatów:
+Komunikaty powinny być wspierające, neutralne i bez presji.
+Przykładowe teksty:
+- „Dzisiaj dobry dzień na ruch.”
+- „Masz zaplanowany trening. Zrób tyle, ile możesz.”
+- „Plan można dopasować. Co robimy z tym treningiem?”
+- „Nie wszystko musi być idealnie. Możesz przenieść trening albo oznaczyć go jako pominięty.”
+Ważne ograniczenia techniczne:
+Jeśli aplikacja działa jako zwykła strona w przeglądarce, przypomnienia systemowe mogą być ograniczone.
+W takim przypadku:
+- użyj Web Notifications API, jeśli jest dostępne,
+- poproś użytkowniczkę o zgodę na powiadomienia,
+- dodaj fallback: przypomnienia widoczne wewnątrz aplikacji po jej otwarciu,
+- pokaż informację, że najlepsze działanie przypomnień może wymagać dodania aplikacji do ekranu głównego jako PWA.
+Wymagania PWA:
+Jeśli projekt nie ma jeszcze PWA, przygotuj podstawową konfigurację:
+- manifest aplikacji,
+- service worker,
+- ikony aplikacji,
+- możliwość dodania aplikacji do ekranu głównego telefonu,
+- obsługa podstawowych powiadomień, jeśli przeglądarka i system na to pozwalają.
+Logika przypomnień:
+- Nie wysyłaj przypomnienia, jeśli trening jest już wykonany.
+- Nie wysyłaj przypomnienia, jeśli trening jest oznaczony jako pominięty.
+- Nie wysyłaj wielu przypomnień o tym samym treningu bez potrzeby.
+- Jeśli użytkowniczka wybierze „Przypomnij później”, pokaż kolejne przypomnienie po ustalonym czasie, np. po 60 minutach.
+- Jeśli trening zostanie przeniesiony, zaktualizuj datę przypomnienia.
+- Jeśli trening zostanie usunięty, usuń powiązane przypomnienia.
+Dane:
+Każdy trening powinien mieć opcjonalne pola:
+- plannedTime,
+- reminderEnabled,
+- reminderOffsetMinutes,
+- reminderStatus,
+- lastReminderShownAt.
+Ustawienia globalne:
+- remindersEnabled,
+- defaultReminderTime,
+- defaultReminderOffsetMinutes,
+- eveningReminderEnabled,
+- eveningReminderTime.
+UX/UI:
+- Dodaj sekcję ustawień przypomnień w „Więcej” lub „Ustawienia”.
+- Używaj prostych przełączników i pól czasu.
+- Przy pierwszym uruchomieniu funkcji pokaż krótkie wyjaśnienie, do czego służą przypomnienia.
+- Nie pokazuj agresywnych komunikatów ani poczucia winy.
+- Aplikacja ma wspierać regularność, nie wywoływać presję.

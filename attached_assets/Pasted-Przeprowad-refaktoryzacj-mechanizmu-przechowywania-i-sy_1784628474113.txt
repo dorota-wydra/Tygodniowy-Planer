@@ -1,0 +1,765 @@
+Przeprowadź refaktoryzację mechanizmu przechowywania i synchronizacji danych w istniejącej aplikacji „Mój planer treningów”.
+
+Nie twórz nowej aplikacji i nie przebudowuj interfejsu niezwiązanego z tym zadaniem.
+
+Zakres prac obejmuje dwa obszary:
+
+1. pełną synchronizację wszystkich danych aplikacji,
+2. uporządkowanie modelu danych i usunięcie nieprawidłowego użycia pola `motivationalLabel`.
+
+Przed rozpoczęciem zmian przeanalizuj obecny kod, typy, endpointy oraz strukturę tabeli `user_data`.
+
+=========================================================
+OBECNY PROBLEM
+==============
+
+Aplikacja przechowuje dane w dwóch niezależnych miejscach:
+
+* `localStorage`,
+* PostgreSQL w jednym wierszu tabeli `user_data` na użytkownika.
+
+Obecnie po zalogowaniu dane serwerowe całkowicie zastępują dane lokalne w widoku.
+
+Nie ma:
+
+* porównania dat,
+* scalania danych,
+* wykrywania konfliktów,
+* wersjonowania,
+* ochrony przed nadpisaniem nowszych danych starszymi.
+
+Po wylogowaniu aplikacja wraca do wcześniejszych danych z `localStorage`, ponieważ dane zmodyfikowane podczas zalogowanej sesji nie są zapisywane lokalnie.
+
+Dodatkowo część danych nie jest w ogóle synchronizowana.
+
+Dotyczy to m.in.:
+
+* programu treningowego,
+* własnych danych treningowych,
+* pomiarów ciała,
+* notatek,
+* ustawień przypomnień.
+
+Pole `motivationalLabel` jest obecnie wykorzystywane do przechowywania tablicy `KeyDate[]` zakodowanej jako JSON, mimo że nazwa i przeznaczenie pola są inne.
+
+=========================================================
+GŁÓWNY CEL
+==========
+
+Wprowadź jeden spójny mechanizm danych działający według zasady:
+
+* `localStorage` jest lokalną kopią i warstwą offline,
+* serwer jest trwałą kopią danych użytkownika,
+* po zalogowaniu aplikacja porównuje dane lokalne i serwerowe,
+* nowsza wersja danych wygrywa,
+* po każdej zmianie dane są zapisywane lokalnie,
+* gdy użytkownik jest zalogowany i ma dostęp do internetu, dane są również synchronizowane z serwerem,
+* wylogowanie nie może powodować cofnięcia danych ani utraty zmian.
+
+=========================================================
+
+1. WSPÓLNY MODEL DANYCH
+   =========================================================
+
+Utwórz jeden główny typ danych aplikacji, np.:
+
+```ts
+type AppData = {
+  schemaVersion: number;
+  updatedAt: string;
+
+  currentWeek: {
+    weekStartDate: string;
+    workouts: Workout[];
+    reflection: WeekReflection | null;
+    reflectionShownCount: number;
+  };
+
+  history: WeekRecord[];
+  keyDates: KeyDate[];
+  trainingData: TrainingDataItem[];
+  bodyMeasurements: BodyMeasurement[];
+  notes: NoteItem[];
+  reminderSettings: ReminderSettings;
+  trainingProgram: TrainingProgram | null;
+
+  motivationalMessages?: string[];
+};
+```
+
+Dostosuj dokładną strukturę do istniejącego kodu i nazw typów.
+
+Nie zachowuj pola `motivationalLabel` jako magazynu dla dat kluczowych.
+
+`KeyDate[]` musi mieć własne jednoznaczne pole:
+
+```ts
+keyDates: KeyDate[];
+```
+
+Jeżeli `motivationalLabel` ma rzeczywiste zastosowanie w interfejsie, pozostaw je jako osobne pole zgodne z jego znaczeniem.
+
+Jeżeli nie jest używane, usuń je po wykonaniu migracji danych.
+
+=========================================================
+2. WERSJONOWANIE SCHEMATU
+=========================
+
+Dodaj pole:
+
+```ts
+schemaVersion: number
+```
+
+Aktualna wersja po refaktoryzacji powinna wynosić np.:
+
+```ts
+schemaVersion: 2
+```
+
+Przy odczycie danych:
+
+1. sprawdź wersję schematu,
+2. wykonaj potrzebne migracje,
+3. zwaliduj wynik,
+4. zapisz dane już w nowym formacie.
+
+Nie modyfikuj danych bezpośrednio w wielu komponentach.
+
+Utwórz centralny system migracji, np.:
+
+```ts
+migrateAppData(rawData: unknown): AppData
+```
+
+Migracja powinna obsługiwać:
+
+* stare osobne klucze `localStorage`,
+* stare dane serwerowe,
+* `KeyDate[]` zapisane jako JSON w `motivationalLabel`,
+* brakujące pola,
+* starsze wersje schematu.
+
+=========================================================
+3. WALIDACJA DANYCH
+===================
+
+Dodaj walidację Zod dla całego modelu danych oraz najważniejszych encji.
+
+Przykładowo:
+
+* `WorkoutSchema`,
+* `WeekRecordSchema`,
+* `TrainingProgramSchema`,
+* `KeyDateSchema`,
+* `AppDataSchema`.
+
+Każdy odczyt z:
+
+* `localStorage`,
+* API,
+* starego formatu danych
+
+musi przechodzić przez walidację i migrację.
+
+Nie zakładaj, że dane zapisane wcześniej są zawsze poprawne.
+
+W przypadku częściowo uszkodzonych danych:
+
+* zachowaj wszystkie poprawne sekcje,
+* zastosuj wartości domyślne dla brakujących sekcji,
+* nie usuwaj całego dokumentu z powodu jednego błędnego pola,
+* zapisz ostrzeżenie w konsoli w środowisku deweloperskim.
+
+=========================================================
+4. JEDEN MAGAZYN LOKALNY
+========================
+
+Docelowo przechowuj dane w jednym kluczu `localStorage`, np.:
+
+```text
+planer-app-data
+```
+
+Nie wymagaj natychmiastowego ręcznego usuwania istniejących kluczy.
+
+Przy pierwszym uruchomieniu po aktualizacji:
+
+1. odczytaj stare klucze:
+
+   * `planer-treningow`,
+   * `planer-historia`,
+   * `planer-refleksja`,
+   * `planer-reflection-count`,
+   * `planer-key-dates`,
+   * `planer-training-data`,
+   * `planer-body-measurements`,
+   * `planer-notes`,
+   * `planer-reminder-settings`,
+   * `planer-program`,
+2. zbuduj z nich `AppData`,
+3. ustaw `schemaVersion`,
+4. ustaw `updatedAt`,
+5. zapisz do `planer-app-data`,
+6. oznacz migrację jako wykonaną.
+
+Nie usuwaj od razu starych kluczy.
+
+Przez co najmniej jedną wersję aplikacji zachowaj je jako awaryjną kopię.
+
+=========================================================
+5. CENTRALNA WARSTWA STANU
+==========================
+
+Usuń duplikację logiki pomiędzy:
+
+* `Home.tsx`,
+* `useRemoteData.ts`,
+* osobnymi hookami `useLocalStorage`.
+
+Utwórz jeden centralny hook lub provider, np.:
+
+```ts
+useAppData()
+```
+
+lub:
+
+```tsx
+<AppDataProvider>
+```
+
+Powinien udostępniać:
+
+```ts
+{
+  data,
+  updateData,
+  updateSection,
+  syncStatus,
+  lastSavedAt,
+  isLoading,
+  isOnline,
+  syncNow
+}
+```
+
+Komponenty nie powinny samodzielnie decydować, czy używają danych lokalnych, czy zdalnych.
+
+Usuń schemat:
+
+```ts
+const workouts = isAuthenticated ? rWorkouts : lsWorkouts;
+```
+
+Interfejs powinien zawsze korzystać z jednego aktualnego obiektu `AppData`.
+
+=========================================================
+6. ZAPIS LOKALNY
+================
+
+Każda zmiana danych powinna zostać najpierw zapisana w pamięci aplikacji oraz w `localStorage`.
+
+Zapis lokalny powinien działać niezależnie od:
+
+* zalogowania,
+* połączenia internetowego,
+* stanu serwera.
+
+Przy każdej zmianie:
+
+1. zaktualizuj dane,
+2. ustaw nowe `updatedAt`,
+3. zapisz cały dokument lokalnie,
+4. jeżeli użytkownik jest zalogowany i online, zaplanuj synchronizację z serwerem.
+
+Zastosuj debounce dla zapisu serwerowego, np. 800–1500 ms.
+
+Nie opóźniaj zapisu lokalnego.
+
+=========================================================
+7. ODPOWIEDŹ API
+================
+
+Zmień endpoint:
+
+```text
+GET /api/data
+```
+
+tak, aby zwracał co najmniej:
+
+```ts
+{
+  data: AppData | null;
+  updatedAt: string | null;
+}
+```
+
+lub odpowiednio spłaszczoną strukturę, pod warunkiem że `updatedAt` jest zwracane.
+
+Endpoint:
+
+```text
+PUT /api/data
+```
+
+powinien przyjmować:
+
+```ts
+{
+  data: AppData;
+  clientUpdatedAt: string;
+  baseServerUpdatedAt?: string | null;
+}
+```
+
+Serwer powinien zwracać:
+
+```ts
+{
+  data: AppData;
+  updatedAt: string;
+}
+```
+
+Nie ukrywaj serwerowego `updated_at`.
+
+=========================================================
+8. ZASADA „NOWSZA ZMIANA WYGRYWA”
+=================================
+
+W tej aplikacji wystarczy strategia last-write-wins oparta na czasie modyfikacji.
+
+Przyjmij następujące zasady:
+
+* dane mają pole `updatedAt`,
+* dane serwerowe mają pole `updatedAt`,
+* podczas logowania porównaj obie wartości,
+* nowsza wersja zostaje uznana za aktualną.
+
+Logika:
+
+### Brak danych lokalnych i brak danych serwerowych
+
+Utwórz pusty dokument `AppData`.
+
+### Są tylko dane lokalne
+
+Załaduj lokalne dane i wyślij je na serwer.
+
+### Są tylko dane serwerowe
+
+Załaduj dane serwerowe i zapisz je również do `localStorage`.
+
+### Obie wersje są identyczne czasowo
+
+Użyj wersji serwerowej lub lokalnej, jeśli ich zawartość jest taka sama.
+
+### Dane lokalne są nowsze
+
+Użyj danych lokalnych i wyślij je na serwer.
+
+### Dane serwerowe są nowsze
+
+Użyj danych serwerowych i zapisz je do `localStorage`.
+
+Nie zastępuj danych lokalnych serwerowymi bez wcześniejszego porównania dat.
+
+=========================================================
+9. OCHRONA PRZED NADPISANIEM
+============================
+
+Mimo strategii last-write-wins dodaj podstawową ochronę przed przypadkowym nadpisaniem danych.
+
+Klient powinien zapamiętywać wartość `updatedAt` otrzymaną z serwera.
+
+Przy zapisie wyślij ją jako:
+
+```ts
+baseServerUpdatedAt
+```
+
+Serwer powinien sprawdzić:
+
+* czy bieżące `updated_at` w bazie jest takie samo jak `baseServerUpdatedAt`,
+* czy na serwerze nie pojawiła się nowsza wersja po ostatnim odczycie klienta.
+
+Jeśli serwer ma nowsze dane, zwróć:
+
+```text
+409 Conflict
+```
+
+wraz z aktualną wersją danych.
+
+Frontend powinien wtedy:
+
+1. porównać lokalne `updatedAt` z serwerowym,
+2. zachować nowszą wersję,
+3. ponowić zapis tylko wtedy, gdy lokalna wersja jest nowsza,
+4. nie tworzyć nieskończonej pętli synchronizacji.
+
+=========================================================
+10. LOGOWANIE
+=============
+
+Po zalogowaniu:
+
+1. nie przełączaj interfejsu od razu na osobny zdalny stan,
+2. zachowaj aktualnie widoczne dane lokalne,
+3. pobierz dane serwerowe,
+4. przeprowadź migrację obu wersji,
+5. porównaj `updatedAt`,
+6. wybierz nowszą wersję,
+7. ustaw ją jako jedyny stan aplikacji,
+8. zapisz ją lokalnie,
+9. w razie potrzeby wyślij na serwer.
+
+Podczas synchronizacji pokaż dyskretny status, np.:
+
+* „Synchronizowanie…”,
+* „Zapisano”,
+* „Brak internetu — zapisano lokalnie”,
+* „Nie udało się zsynchronizować”.
+
+Nie wyświetlaj użytkowniczce pustego tygodnia tylko dlatego, że serwer nie ma danych.
+
+=========================================================
+11. WYLOGOWANIE
+===============
+
+Przed wylogowaniem:
+
+1. upewnij się, że aktualny stan znajduje się w `localStorage`,
+2. jeżeli trwa zapis serwerowy, spróbuj go zakończyć,
+3. nie kasuj lokalnych danych,
+4. po wylogowaniu nadal wyświetlaj tę samą wersję danych.
+
+Wylogowanie nie może powodować:
+
+* cofnięcia tygodnia,
+* zniknięcia notatek,
+* utraty programu,
+* powrotu do starszych danych lokalnych.
+
+Po wylogowaniu aplikacja nadal korzysta z tego samego `AppData`, tylko przestaje wysyłać zmiany na serwer.
+
+=========================================================
+12. TRYB OFFLINE
+================
+
+Jeżeli użytkowniczka jest offline:
+
+* wszystkie funkcje edycji nadal działają,
+* zmiany zapisują się lokalnie,
+* aplikacja oznacza dane jako oczekujące na synchronizację.
+
+Po odzyskaniu internetu:
+
+1. porównaj stan lokalny i serwerowy,
+2. zastosuj zasadę nowszej zmiany,
+3. wyślij nowsze dane,
+4. zaktualizuj status synchronizacji.
+
+Można użyć:
+
+```ts
+window.addEventListener("online", ...)
+window.addEventListener("offline", ...)
+```
+
+Dodaj możliwość ręcznego użycia:
+
+```text
+Synchronizuj teraz
+```
+
+w ustawieniach.
+
+=========================================================
+13. PEŁNY ZAKRES SYNCHRONIZACJI
+===============================
+
+Synchronizuj wszystkie ważne sekcje:
+
+* bieżący tydzień,
+* treningi,
+* refleksję bieżącego tygodnia,
+* historię tygodni,
+* daty kluczowe,
+* program treningowy,
+* własne dane treningowe,
+* pomiary ciała,
+* notatki,
+* ustawienia przypomnień,
+* pozostałe ustawienia użytkowniczki związane z aplikacją.
+
+Nie zostawiaj części danych wyłącznie w osobnych kluczach `localStorage`.
+
+Wyjątkiem mogą być dane stricte techniczne urządzenia, np.:
+
+* informacja, które powiadomienia pokazano dziś,
+* chwilowy stan otwartego modala,
+* lokalny stan timera w trakcie działania,
+* zgoda przeglądarki na powiadomienia.
+
+Te dane nie muszą być synchronizowane.
+
+=========================================================
+14. NAPRAWA `motivationalLabel`
+===============================
+
+Wykonaj migrację danych według zasad:
+
+1. sprawdź, czy `motivationalLabel` zawiera poprawny JSON,
+2. sprawdź, czy ten JSON ma strukturę tablicy `KeyDate[]`,
+3. jeśli tak:
+
+   * przenieś dane do `keyDates`,
+   * nie traktuj tej wartości jako etykiety motywacyjnej,
+4. jeśli istnieją już dane `keyDates`, połącz je bez duplikatów,
+5. duplikaty rozpoznawaj po:
+
+   * `id`,
+   * a jeśli brak `id`, po połączeniu `name + date`,
+6. po migracji wyczyść hackowe użycie pola.
+
+Jeżeli `motivationalLabel` zawiera normalny tekst, nie próbuj interpretować go jako dat kluczowych.
+
+Dodaj testy migracji dla obu przypadków:
+
+* JSON z `KeyDate[]`,
+* zwykły tekst.
+
+=========================================================
+15. EKSPORT I KOPIA ZAPASOWA
+============================
+
+Dodaj w ustawieniach sekcję:
+
+```text
+Dane i kopia zapasowa
+```
+
+Dodaj przyciski:
+
+* „Eksportuj wszystkie dane”,
+* „Importuj kopię zapasową”.
+
+Eksport powinien tworzyć plik JSON zawierający:
+
+* `schemaVersion`,
+* `exportedAt`,
+* pełne `AppData`.
+
+Przykładowa nazwa:
+
+```text
+planer-treningow-backup-2026-07-21.json
+```
+
+Import powinien:
+
+1. odczytać plik,
+2. zwalidować go,
+3. wykonać migrację do aktualnego schematu,
+4. pokazać podsumowanie zawartości,
+5. zapytać o potwierdzenie,
+6. wykonać kopię obecnych danych przed importem,
+7. zastąpić dane dopiero po potwierdzeniu.
+
+Nie importuj bezpośrednio niezwalidowanego JSON.
+
+=========================================================
+16. AUTOMATYCZNA KOPIA PRZED MIGRACJĄ
+=====================================
+
+Przed pierwszą migracją:
+
+1. zbierz stare dane lokalne,
+2. zapisz ich kopię w osobnym kluczu, np.:
+
+```text
+planer-pre-migration-backup-v1
+```
+
+3. dodaj datę utworzenia kopii,
+4. nie usuwaj tej kopii automatycznie w tej wersji aplikacji.
+
+Przed migracją danych serwerowych również zachowaj starą wersję po stronie serwera, jeśli architektura na to pozwala.
+
+Minimalne rozwiązanie:
+
+* zapisz poprzedni JSONB w osobnym polu lub tabeli backupów,
+* albo przed wdrożeniem wykonaj kopię tabeli `user_data`.
+
+=========================================================
+17. STATUS SYNCHRONIZACJI W INTERFEJSIE
+=======================================
+
+Dodaj dyskretny status, najlepiej w ustawieniach lub nagłówku.
+
+Możliwe stany:
+
+* zapisano lokalnie,
+* synchronizowanie,
+* zsynchronizowano,
+* offline,
+* błąd synchronizacji,
+* konflikt danych.
+
+Nie pokazuj ciągłych toastów po każdej zmianie.
+
+Toast pokaż tylko przy:
+
+* błędzie,
+* konflikcie,
+* odzyskaniu danych,
+* zakończeniu importu.
+
+=========================================================
+18. PODZIAŁ KODU
+================
+
+Nie umieszczaj całej nowej logiki w `Home.tsx`.
+
+Wydziel co najmniej:
+
+```text
+types/appData.ts
+schemas/appDataSchemas.ts
+data/defaultAppData.ts
+data/migrations.ts
+hooks/useAppData.ts
+hooks/useDataSync.ts
+services/dataApi.ts
+services/localDataStorage.ts
+components/SyncStatus.tsx
+```
+
+Dokładne nazwy mogą zostać dostosowane do obecnej architektury.
+
+`Home.tsx` ma korzystać z gotowego hooka/providera, a nie zawierać własną implementację `fetch` i `PUT`.
+
+=========================================================
+19. TESTY
+=========
+
+Dodaj testy jednostkowe dla najważniejszych przypadków.
+
+### Migracja
+
+* migracja wszystkich starych kluczy `localStorage`,
+* migracja `KeyDate[]` z `motivationalLabel`,
+* zachowanie tekstowego `motivationalLabel`,
+* brak części pól,
+* uszkodzony JSON,
+* duplikaty dat kluczowych.
+
+### Synchronizacja
+
+* tylko dane lokalne,
+* tylko dane serwerowe,
+* lokalne nowsze,
+* serwerowe nowsze,
+* brak internetu,
+* odzyskanie połączenia,
+* odpowiedź `409 Conflict`,
+* wylogowanie bez utraty danych.
+
+### Walidacja
+
+* poprawny pełny dokument,
+* brak opcjonalnych sekcji,
+* niepoprawny typ pojedynczego pola,
+* stary numer schematu.
+
+=========================================================
+20. KOLEJNOŚĆ WDROŻENIA
+=======================
+
+Wdrażaj zmiany etapami:
+
+### Etap 1
+
+* typ `AppData`,
+* schemat Zod,
+* domyślne dane,
+* migracje lokalne,
+* jeden klucz `localStorage`.
+
+### Etap 2
+
+* centralny provider lub hook,
+* zastąpienie lokalnych stanów w `Home.tsx`,
+* zapis lokalny po każdej zmianie.
+
+### Etap 3
+
+* aktualizacja API,
+* zwracanie `updatedAt`,
+* pełna synchronizacja wszystkich sekcji.
+
+### Etap 4
+
+* logowanie, wylogowanie i tryb offline,
+* wykrywanie konfliktów.
+
+### Etap 5
+
+* eksport i import kopii zapasowej,
+* status synchronizacji,
+* testy końcowe.
+
+Po każdym etapie aplikacja musi pozostawać działająca.
+
+=========================================================
+21. KRYTERIA AKCEPTACJI
+=======================
+
+Zmiany są gotowe, jeżeli:
+
+1. Aplikacja korzysta z jednego głównego modelu `AppData`.
+2. Wszystkie trwałe dane zapisują się w `localStorage`.
+3. Wszystkie ważne dane synchronizują się po zalogowaniu.
+4. Program treningowy jest dostępny po ponownym zalogowaniu.
+5. Notatki i pomiary nie znikają po zmianie sesji.
+6. Logowanie nie zastępuje nowszych danych lokalnych starszymi serwerowymi.
+7. Wylogowanie nie przywraca starej wersji tygodnia.
+8. Tryb offline pozwala dalej edytować dane.
+9. Po odzyskaniu internetu dane są synchronizowane.
+10. Serwer zwraca `updatedAt`.
+11. Frontend porównuje daty aktualizacji.
+12. Konflikt zapisu nie prowadzi do cichego nadpisania danych.
+13. `KeyDate[]` ma własne pole `keyDates`.
+14. `motivationalLabel` nie jest używane jako magazyn JSON.
+15. Stare dane są automatycznie migrowane.
+16. Przed migracją tworzona jest kopia zapasowa.
+17. Można wyeksportować pełne dane do JSON.
+18. Można zaimportować zwalidowaną kopię.
+19. `Home.tsx` nie zawiera własnej, zduplikowanej logiki synchronizacji.
+20. Istnieją testy dla migracji, logowania, wylogowania i konfliktów.
+
+=========================================================
+22. WAŻNE OGRANICZENIA
+======================
+
+* Nie normalizuj teraz całej bazy PostgreSQL na wiele tabel, jeśli znacząco zwiększyłoby to zakres prac.
+* Obecny model jednego dokumentu JSONB na użytkownika może pozostać.
+* Przygotuj jednak czysty i wersjonowany model dokumentu.
+* Nie zapisuj obrazów jako base64 w tym JSONB.
+* Nie usuwaj istniejących danych bez migracji.
+* Nie przebudowuj modułów treningowych, jeśli nie jest to konieczne.
+* Nie zmieniaj zachowania tygodnia, programu, historii ani timera poza podłączeniem ich do nowego źródła danych.
+* Zachowaj kompatybilność z istniejącymi danymi użytkowniczki.
+
+Przed rozpoczęciem implementacji przedstaw krótko:
+
+1. które pliki zostaną zmienione,
+2. jakie nowe pliki powstaną,
+3. jak będzie wyglądała migracja,
+4. jak zabezpieczysz istniejące dane,
+5. jak przetestujesz logowanie, wylogowanie i tryb offline.
+
+Następnie wykonaj implementację etapami i po każdym etapie sprawdź, czy aplikacja się buduje oraz czy dotychczasowe funkcje nadal działają.

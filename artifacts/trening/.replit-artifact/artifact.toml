@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Planer Treningów"
+version = "1.0.0"
+id = "artifacts/trening"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23470
+
+[services.development]
+run = "pnpm --filter @workspace/trening run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/trening", "run", "build" ]
+publicDir = "artifacts/trening/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23470"
+BASE_PATH = "/"

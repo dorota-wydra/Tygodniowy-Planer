@@ -1,0 +1,26 @@
+{
+  "name": "Mój planer treningów",
+  "short_name": "Planer",
+  "description": "Tygodniowy planer treningów — zaplanuj, zapisz i śledź swoje aktywności",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#F7F8FA",
+  "theme_color": "#2E7D32",
+  "orientation": "portrait-primary",
+  "lang": "pl",
+  "categories": ["health", "fitness"],
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

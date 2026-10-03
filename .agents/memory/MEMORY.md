@@ -1,0 +1,3 @@
+- [AppData unified model](appdata-model.md) — all user data in one document; SCHEMA_VERSION=2; migration from 10+ old localStorage keys
+- [Zod safeParse generic](zod-safeParse.md) — must use `<S extends ZodTypeAny>` + `z.output<S>` to get correct output type for schemas with `.default()` fields
+- [Sync pickNewer bug](sync-picknewer-bug.md) — fresh empty local data must use epoch updatedAt (not now()), and onConflictDoUpdate must explicitly set updatedAt (Drizzle $onUpdate doesn't fire there).

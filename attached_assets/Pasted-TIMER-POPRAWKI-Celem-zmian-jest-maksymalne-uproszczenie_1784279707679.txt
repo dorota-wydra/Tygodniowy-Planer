@@ -1,0 +1,224 @@
+TIMER – POPRAWKI
+Celem zmian jest maksymalne uproszczenie obsługi timera podczas treningu.
+
+1.1 Edycja czasu ćwiczeń
+Zmodyfikuj formularz edycji ćwiczenia.
+Wymagania:
+
+- minimalny czas ćwiczenia wynosi 1 sekundę,
+- podczas wpisywania wartość pola może być chwilowo pusta (nie wymuszaj wpisania liczby natychmiast),walidacja powinna nastąpić dopiero po zapisaniu formularza,
+- jeśli użytkownik zapisze wartość mniejszą niż 1 sekundę, pokaż komunikat i nie zapisuj zmian.
+
+1.2 Pomijanie etapu
+Dodaj przycisk: "Pomiń etap". Powinien działać dla: rozgrzewki, ćwiczenia, przerwy, schłodzenia. Po kliknięciu timer natychmiast przechodzi do kolejnego etapu, zachowuje poprawną kolejność treningu, nie powoduje błędów w liczniku serii.
+
+1.3 Odliczanie ostatnich 5 sekund
+Dodaj krótki sygnał dźwiękowy przy: 5 4 3 2 1. Powinien być krótki, nienachalny i wyraźnie odróżniać się od sygnału końca etapu.
+
+1.4 Sygnał zakończenia etapu
+Sygnał końca: ćwiczenia, przerwy, rozgrzewki, schłodzenia powinien być wyraźny i łatwy do usłyszenia nawet podczas słuchania muzyki. Jeśli przeglądarka lub system operacyjny nie pozwalają na odtwarzanie dźwięku ponad muzyką z innej aplikacji, zastosuj najlepsze możliwe rozwiązanie dostępne dla aplikacji webowej oraz poinformuj o ograniczeniu technicznym.
+
+1.5 Brak wygaszania ekranuPodczas działania timera ekran telefonu nie powinien się wygaszać.Wykorzystaj dostępne mechanizmy przeglądarki (np. Screen Wake Lock API) z odpowiednim mechanizmem awaryjnym, jeśli funkcja nie jest wspierana.Po zakończeniu treningu lub wyjściu z timera zwolnij blokadę wygaszania ekranu.
+
+1.6 Zmień układ zakładki „Timer”:
+
+- Rozgrzewka ma być wyświetlana jako pierwszy element treningu. 
+- Rozgrzewka powinna zajmować całą szerokość ekranu, analogicznie jak schłodzenie.
+- Schłodzenie ma być wyświetlane jako ostatni element treningu.
+- Dla rozgrzewki i schłodzenia użytkownik powinien móc ustawić czas w minutach.
+- Po zakończeniu rozgrzewki timer automatycznie przechodzi do pierwszego ćwiczenia.
+- Po zakończeniu ostatniego ćwiczenia timer automatycznie przechodzi do schłodzenia.
+- Po zakończeniu schłodzenia pokaż komunikat o ukończeniu treningu.
+
+1.7`PODSUMOWANIE TYGODNIA`
+
+`Cel funkcji:`
+`Użytkowniczka powinna móc szybko zobaczyć, jak wyglądał jej tydzień treningowy: ile aktywności zaplanowała, ile wykonała, jakie typy aktywności dominowały i jak subiektywnie ocenia tydzień.`
+`Zakres funkcji:`
+`Dodaj ekran lub sekcję „Podsumowanie tygodnia” w zakładce „Historia”.`
+`Podsumowanie powinno być generowane automatycznie dla każdego zakończonego tygodnia.`
+`Dane do podsumowania:`
+`- liczba zaplanowanych aktywności,`
+`- liczba wykonanych aktywności,`
+`- procent realizacji planu,`
+`- liczba aktywności według typu: - bieg, - spacer, - trening siłowy, - relaksacja, - inne,`
+`- liczba treningów pominiętych,`
+`- liczba treningów przeniesionych,`
+`- łączny czas aktywności, jeśli treningi mają wpisany czas,`
+`- liczba niezaplanowanych aktywności dodanych w danym tygodniu.`
+`Widok podsumowania:`
+`Na ekranie historii pokaż listę tygodni, np.:`
+`Tydzień 24–30.06`
+`Wykonano 5/6 treningów`
+`Skuteczność: 83%`
+`Po kliknięciu w tydzień pokaż szczegóły:`
+`- nagłówek z zakresem dat,`
+`- karta „Realizacja planu”,`
+`- karta „Aktywności według typu”,`
+`- karta „Łączny czas aktywności”,`
+`- karta „Niezaplanowane aktywności”,`
+`- lista wykonanych treningów,`
+`- lista pominiętych lub przeniesionych treningów.`
+`Dodaj element refleksji:`
+`Na końcu podsumowania dodaj krótką sekcję „Jak oceniasz ten tydzień?”.`
+`Użytkowniczka może:`
+`- wybrać ocenę 1–5 gwiazdek,`
+`- dopisać krótką notatkę tygodniową.`
+`Notatka tygodniowa powinna być zapisywana razem z podsumowaniem danego tygodnia.`
+`UX/UI:`
+`- Podsumowanie powinno być czytelne i spokojne wizualnie.`
+`- Najważniejsza liczba to wykonane/zaplanowane aktywności.`
+`- Nie przeładowuj widoku wykresami.`
+`- Użyj kart, ikon i krótkich etykiet.`
+`- Na telefonie szczegóły tygodnia powinny być łatwe do przewijania.`
+`- Jeśli w tygodniu nie było aktywności, pokaż neutralny komunikat: „Brak aktywności w tym tygodniu”.`
+`Logika:`
+`- Tydzień licz od poniedziałku do niedzieli.`
+`- Podsumowanie aktualnego tygodnia może być widoczne jako „w trakcie”.`
+`- Zakończone tygodnie powinny być archiwizowane w historii.`
+`- Aktualizacja podsumowania powinna następować po każdej zmianie statusu treningu, dodaniu treningu, usunięciu treningu lub przeniesieniu treningu.`
+`Dane:`
+`Zapisuj w bazie danych lub localStorage, zgodnie z aktualną architekturą aplikacji.`
+`Nie duplikuj danych bez potrzeby — jeśli możliwe, generuj podsumowanie na podstawie istniejących treningów, a zapisuj tylko ocenę tygodnia i notatkę użytkowniczki.`
+
+`1.8 INTELIGENTNE PRZYPOMNIENIA`
+`Cel funkcji:`
+`Przypomnienia mają pomagać użytkowniczce wykonać zaplanowany trening albo łatwo zdecydować, co zrobić z niewykonanym treningiem. Mają wspierać, a nie zawstydzać.`
+`Zakres funkcji:`
+`Dodaj system przypomnień oparty na zaplanowanych treningach.`
+`Użytkowniczka powinna móc włączyć lub wyłączyć przypomnienia w ustawieniach.`
+`Ustawienia przypomnień:`
+`- globalne włącz/wyłącz,`
+`- domyślna godzina przypomnienia przed treningiem,`
+`- możliwość ustawienia przypomnienia przy konkretnym treningu,`
+`- przypomnienie wieczorne dla niewykonanych treningów,`
+`- możliwość wyłączenia przypomnień dla danego typu aktywności.`
+`Typy przypomnień:`
+`1. Przypomnienie przed treningiem`
+`Jeśli trening ma ustawioną godzinę, pokaż przypomnienie np. 30 minut wcześniej.`
+`Przykład:`
+`„Dzisiaj o 18.00 czeka Cię trening siłowy 💪”`
+
+`. Przypomnienie dzienne`
+
+`eśli trening nie ma ustawionej godziny, pokaż przypomnienie o domyślnej godzinie wybranej w ustawieniach.`
+
+`rzykład:`
+
+`Masz dziś zaplanowany bieg. Spokojnie, wystarczy zacząć od pierwszego kroku 🏃”
+3`
+ `Przypomnienie wieczorne
+J`
+`śli do wybranej godziny wieczornej trening nie został oznaczony jako wykonany, pokaż komunikat:
+„`
+`en trening nie jest jeszcze oznaczony jako wykonany. Co z nim zrobić?”
+A`
+`cje:
+-`
+`Oznacz jako wykonany,
+-`
+`Przenieś na jutro,
+-`
+`Oznacz jako pominięty,
+-`
+`Przypomnij później.
+4`
+ `Przypomnienie o przeniesionym treningu
+J`
+`śli trening został przeniesiony, pokaż subtelną informację w nowym dniu:
+„`
+`o trening przeniesiony z wtorku.”
+U`
+ `komunikatów:
+K`
+`munikaty powinny być wspierające, neutralne i bez presji.
+P`
+`zykładowe teksty:
+-`
+`„Dzisiaj dobry dzień na ruch.”
+-`
+`„Masz zaplanowany trening. Zrób tyle, ile możesz.”
+-`
+`„Plan można dopasować. Co robimy z tym treningiem?”
+-`
+`„Nie wszystko musi być idealnie. Możesz przenieść trening albo oznaczyć go jako pominięty.”
+W`
+`żne ograniczenia techniczne:
+J`
+`śli aplikacja działa jako zwykła strona w przeglądarce, przypomnienia systemowe mogą być ograniczone.
+W`
+`takim przypadku:
+-`
+`użyj Web Notifications API, jeśli jest dostępne,
+-`
+`poproś użytkowniczkę o zgodę na powiadomienia,
+-`
+`dodaj fallback: przypomnienia widoczne wewnątrz aplikacji po jej otwarciu,
+-`
+`pokaż informację, że najlepsze działanie przypomnień może wymagać dodania aplikacji do ekranu głównego jako PWA.
+W`
+`magania PWA:
+J`
+`śli projekt nie ma jeszcze PWA, przygotuj podstawową konfigurację:
+-`
+`manifest aplikacji,
+-`
+`service worker,
+-`
+`ikony aplikacji,
+-`
+`możliwość dodania aplikacji do ekranu głównego telefonu,
+-`
+`obsługa podstawowych powiadomień, jeśli przeglądarka i system na to pozwalają.
+L`
+`gika przypomnień:
+-`
+`Nie wysyłaj przypomnienia, jeśli trening jest już wykonany.
+-`
+`Nie wysyłaj przypomnienia, jeśli trening jest oznaczony jako pominięty.
+-`
+`Nie wysyłaj wielu przypomnień o tym samym treningu bez potrzeby.
+-`
+`Jeśli użytkowniczka wybierze „Przypomnij później”, pokaż kolejne przypomnienie po ustalonym czasie, np. po 60 minutach.
+-`
+`Jeśli trening zostanie przeniesiony, zaktualizuj datę przypomnienia.
+-`
+`Jeśli trening zostanie usunięty, usuń powiązane przypomnienia.
+D`
+`ne:
+K`
+`żdy trening powinien mieć opcjonalne pola:
+-`
+`plannedTime,
+-`
+`reminderEnabled,
+-`
+`reminderOffsetMinutes,
+-`
+`reminderStatus,
+-`
+`lastReminderShownAt.
+U`
+`tawienia globalne:
+-`
+`remindersEnabled,
+-`
+`defaultReminderTime,
+-`
+`defaultReminderOffsetMinutes,
+-`
+`eveningReminderEnabled,
+-`
+`eveningReminderTime.
+U`
+`/UI:
+-`
+`Dodaj sekcję ustawień przypomnień w „Więcej” lub „Ustawienia”.
+-`
+`Używaj prostych przełączników i pól czasu.
+-`
+`Przy pierwszym uruchomieniu funkcji pokaż krótkie wyjaśnienie, do czego służą przypomnienia.
+-`
+`Nie pokazuj agresywnych komunikatów ani poczucia winy.
+-`
+`Aplikacja ma wspierać regularność, nie wywoływać presję.`

@@ -1,0 +1,65 @@
+1. Pasek postępu
+- Obecnie pasek postępu ma 7 segmentów i zakłada cel 7/7.
+- Zmień logikę paska tak, aby dopasowywał się do liczby zaplanowanych treningów w aktualnym tygodniu.
+- Jeśli w tygodniu zaplanowano 5 treningów, pasek pokazuje postęp 0/5, 1/5 itd.
+- Jeśli użytkownik doda trening niezaplanowany i oznaczy go jako wykonany, powinien zostać doliczony do postępu tygodnia.
+- Komunikat gratulacyjny powinien pojawić się po wykonaniu wszystkich zaplanowanych treningów w danym tygodniu, np. „Świetna robota! Wszystkie treningi z tego tygodnia wykonane.”
+- Jeśli w tygodniu nie ma żadnych treningów, pokaż neutralny komunikat: „Brak zaplanowanych treningów w tym tygodniu.”
+
+2. Kluczowe daty
+- Dodaj możliwość zapisania większej liczby kluczowych dat.
+- Kluczowa data powinna mieć: nazwę, datę oraz opcjonalny opis.
+- Na ekranie głównym pokazuj maksymalnie dwie najbliższe nadchodzące daty.
+- Jeśli kluczowych dat jest więcej niż dwie, dodaj możliwość zobaczenia pozostałych po przewinięciu listy albo po rozwinięciu sekcji „Pokaż więcej”.
+- Daty powinny być uporządkowane chronologicznie od najbliższej.
+- Daty przeszłe powinny zostać wyszarzone i przeniesione niżej na liście.
+
+3. Kluczowe informacje treningowe
+- Dodaj nowy przycisk/zakładkę „Dane” na tym samym poziomie nawigacji co „Aktualny tydzień” i „Historia”.
+- W tej sekcji użytkownik może zapisywać i edytować ważne informacje treningowe, np.:
+- aktualne średnie tempo,
+- tempo do interwałów,
+- maksymalne tętno,
+- wyciskany ciężar,
+- inne własne informacje.
+- Każda informacja powinna mieć nazwę, wartość oraz opcjonalną notatkę.
+- Użytkownik powinien móc dodawać, edytować i usuwać informacje.
+- Dane zapisuj lokalnie w localStorage.
+
+4. Nowa aktywność: relaksacja
+- Dodaj nowy typ aktywności „Relaksacja”.
+- Powinna być dostępna wszędzie tam, gdzie wybiera się typ treningu: przy dodawaniu treningu, przy treningu niezaplanowanym, w historii i w statystykach, jeśli takie istnieją.
+- Dopasuj kolor aktywności do pozostałych typów, najlepiej delikatny i odróżnialny od biegania, spaceru i treningu siłowego.
+
+5. Zakładka „Notatki”
+- Dodaj nową zakładkę „Notatki” w głównej nawigacji.
+- Użytkownik może w niej tworzyć ogólne notatki niezwiązane z konkretnym treningiem.
+- Notatka powinna mieć tytuł, treść oraz datę utworzenia.
+- Użytkownik powinien móc dodawać, edytować i usuwać notatki.
+- Najnowsze notatki pokazuj na górze.
+- Dane zapisuj lokalnie w localStorage.
+
+6. Timer do ćwiczeń
+- Dodaj nową funkcję timera do ćwiczeń, umieść go tak samo jak zakładki “notatki” czy “Informacje”
+- Timer powinien pozwalać ustawić:
+- czas ćwiczenia,
+- czas przerwy,
+- liczbę rund, 
+- czas rozgrzewki, 
+- czas schłodzenia na koniec ćwiczeń
+- Timer powinien pokazywać aktualny etap: „Ćwiczenie” albo „Przerwa”.
+- Dodaj przyciski: Start, Pauza, Wznów, Reset.
+- Po zakończeniu rundy aplikacja powinna przejść automatycznie do przerwy, a po przerwie do kolejnej rundy. Dodaj do każdego przejścia sygnał dźwiękowy
+- Po zakończeniu całego timera pokaż komunikat gratulacyjny.
+- Timer powinien dobrze działać na telefonie: duże przyciski, czytelne cyfry, prosty układ.
+
+Wymagania UX/UI:
+- Zachowaj prosty, mobilny układ.
+- Najważniejsze akcje powinny być łatwe do kliknięcia kciukiem.
+- Nie przeładowuj ekranu głównego.
+- Używaj spójnych nazw, ikon i kolorów.
+- Nowe funkcje powinny być intuicyjne dla osoby nietechnicznej.
+- Po każdej ważnej akcji pokazuj krótkie potwierdzenie, np. „Zapisano”, „Dodano notatkę”, „Trening ukończony”.
+- Upewnij się, że wszystkie nowe dane są zapisywane w localStorage i nie znikają po odświeżeniu strony.
+
+Na końcu sprawdź, czy aplikacja działa poprawnie na ekranie telefonu.

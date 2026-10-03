@@ -1,0 +1,409 @@
+Rozbuduj istniejącą aplikację o nową zakładkę „Program treningowy”.
+
+UWAGA:
+Nie twórz osobnej aplikacji ani nie zmieniaj istniejących funkcjonalności. Nowa zakładka ma być zintegrowana z obecną aplikacją i współpracować z już istniejącym widokiem „Aktualny tydzień”, historią treningów, timerem oraz zestawami ćwiczeń.
+
+=========================================================
+CEL
+=========================================================
+
+Program treningowy ma służyć do zaplanowania przygotowań do jednego konkretnego celu (np. zawodów).
+
+Nie jest to kalendarz.
+
+Jest to szablon wielotygodniowego programu treningowego, z którego użytkownik może jednym kliknięciem wygenerować aktualny tydzień treningowy.
+
+Program treningowy jest niezależny od historii wykonanych treningów.
+
+Zmiany wykonywane podczas realizacji tygodnia NIE mogą modyfikować programu treningowego.
+
+=========================================================
+ARCHITEKTURA
+=========================================================
+
+Program powinien mieć następującą strukturę:
+
+Program treningowy
+
+↓
+
+Cykle
+
+↓
+
+Tygodnie
+
+↓
+
+Szablon tygodnia
+
+↓
+
+Parametry treningów
+
+Każdy poziom posiada własne informacje i notatki.
+
+=========================================================
+JEDEN AKTYWNY PROGRAM
+=========================================================
+
+Aplikacja obsługuje wyłącznie jeden aktywny program treningowy.
+
+Nie dodawaj funkcji wielu planów.
+
+=========================================================
+PROGRAM TRENINGOWY
+=========================================================
+
+Program powinien zawierać:
+
+- nazwę programu
+- datę rozpoczęcia LUB datę zakończenia (np. dzień zawodów)
+- użytkownik wybiera tylko jedną z tych dat
+
+Jeżeli poda datę rozpoczęcia:
+
+aplikacja automatycznie wylicza datę zakończenia.
+
+Jeżeli poda datę zakończenia:
+
+aplikacja automatycznie wylicza datę rozpoczęcia.
+
+Daty powinny być wyliczane dynamicznie na podstawie liczby tygodni programu.
+
+Nie zapisuj dat dla każdego tygodnia osobno.
+
+Daty tygodni mają być wyliczane automatycznie.
+
+Program powinien zawierać również:
+
+- nazwę celu
+- opis programu
+- ogólne informacje
+- ogólne notatki
+
+=========================================================
+CYKLE
+=========================================================
+
+Domyślnie nowy program składa się z:
+
+4 cykli
+
+po 4 tygodnie każdy.
+
+Jednak użytkownik może:
+
+- zmienić liczbę cykli
+- zmienić liczbę tygodni w dowolnym cyklu
+- dodawać nowe cykle
+- usuwać cykle
+- kopiować cykle
+- zmieniać kolejność cykli
+
+Każdy cykl powinien posiadać:
+
+- nazwę
+- kolor
+- opis
+- informacje
+- notatki
+
+Kolory powinny być spokojne i pastelowe.
+
+Nie stosuj bardzo nasyconych kolorów.
+
+Kolor cyklu ma być używany jako:
+
+- kolor etykiety
+- pasek
+- element osi programu
+
+=========================================================
+TYDZIEŃ
+=========================================================
+
+Każdy tydzień posiada:
+
+- numer tygodnia w całym programie
+- numer tygodnia w obrębie cyklu
+- nazwę (opcjonalnie)
+- cel tygodnia
+- informacje
+- notatki
+
+Nie zapisuj konkretnej daty.
+
+Data tygodnia ma być wyliczana automatycznie z daty początku lub końca programu.
+
+=========================================================
+SZABLON TYGODNIA
+=========================================================
+
+To jest najważniejsza część programu.
+
+Każdy tydzień posiada szablon tygodnia.
+
+Nie chcę wpisywać od nowa wszystkich treningów.
+
+Rodzaje treningów zwykle się powtarzają.
+
+Przykład:
+
+Poniedziałek
+
+Bieg spokojny
+
+Wtorek
+
+Siła A
+
+Środa
+
+Spacer
+
+Czwartek
+
+Interwały
+
+Piątek
+
+Siła B
+
+Sobota
+
+Długie wybieganie
+
+Niedziela
+
+Mobilność
+
+To jest tylko szablon.
+
+=========================================================
+PARAMETRY TRENINGÓW
+=========================================================
+
+Zmieniają się jedynie parametry.
+
+Każdy trening może posiadać:
+
+- nazwę
+- typ aktywności
+- opis
+- intensywność
+- dystans
+- czas
+- liczbę powtórzeń
+- tempo
+- tętno
+- ciężar
+- przypisany zestaw ćwiczeń
+- własne pola tekstowe
+
+To właśnie te parametry będą się zmieniały pomiędzy tygodniami.
+
+=========================================================
+KOPIOWANIE
+=========================================================
+
+Dodaj możliwość:
+
+- kopiowania całego tygodnia
+- kopiowania parametrów tygodnia
+- kopiowania cyklu
+
+Po skopiowaniu użytkownik może zmienić wyłącznie parametry.
+
+Nie musi budować planu od początku.
+
+=========================================================
+POWIĄZANIE Z AKTUALNYM TYGODNIEM
+=========================================================
+
+Program NIE jest tym samym co aktualny tydzień.
+
+Dodaj przycisk:
+
+"Wygeneruj aktualny tydzień"
+
+Po kliknięciu aplikacja:
+
+1. określa aktualny tydzień programu
+
+2. kopiuje treningi z programu
+
+3. umieszcza je w zakładce "Aktualny tydzień"
+
+Od tego momentu:
+
+użytkownik może:
+
+- przesuwać treningi
+- usuwać
+- dodawać
+- oznaczać jako wykonane
+- dopisywać notatki
+
+Żadna z tych zmian NIE może zmieniać programu treningowego.
+
+Program jest szablonem.
+
+=========================================================
+AKTUALNY TYDZIEŃ PROGRAMU
+=========================================================
+
+Na górze zakładki pokaż:
+
+Program treningowy
+
+Silna na szlaku
+
+Tydzień 6 z 16
+
+Cykl:
+
+Budowanie siły
+
+Data tygodnia
+
+(obliczona automatycznie)
+
+=========================================================
+OŚ PROGRAMU
+=========================================================
+
+Dodaj prostą poziomą oś programu.
+
+Każdy tydzień powinien być jednym segmentem.
+
+□□□□□□□□□□□□□□□□
+
+■■■■□□□□■■■■□□□□
+
+Segmenty należące do tego samego cyklu mają ten sam kolor.
+
+Aktualny tydzień powinien być wyraźnie wyróżniony.
+
+Po kliknięciu segmentu otwiera się dany tydzień.
+
+Na telefonie oś może przewijać się poziomo.
+
+Po wejściu do programu automatycznie przewiń do aktualnego tygodnia.
+
+=========================================================
+INFORMACJE
+=========================================================
+
+Informacje mają istnieć na trzech poziomach.
+
+PROGRAM
+
+- cel
+- opis
+- notatki
+
+CYKL
+
+- cel
+- informacje
+- notatki
+
+TYDZIEŃ
+
+- cel
+- informacje
+- notatki
+
+Każdy poziom powinien posiadać własne pole tekstowe.
+
+=========================================================
+TRYB PODGLĄDU I EDYCJI
+=========================================================
+
+Dodaj dwa tryby.
+
+Tryb podglądu
+
+Do codziennego korzystania.
+
+Pokazuje:
+
+- aktualny tydzień
+- oś programu
+- cel tygodnia
+- treningi
+
+Tryb edycji
+
+Pozwala:
+
+- dodawać cykle
+- usuwać cykle
+- zmieniać liczbę tygodni
+- kopiować tygodnie
+- kopiować cykle
+- edytować treningi
+
+Domyślnie aplikacja powinna otwierać tryb podglądu.
+
+=========================================================
+UX/UI
+=========================================================
+
+Projektuj przede wszystkim pod telefon.
+
+Zadbaj o:
+
+- prosty układ
+- duże przyciski
+- spokojne kolory
+- możliwość zwijania cykli
+- automatyczne rozwijanie aktualnego cyklu
+- automatyczne przewinięcie do aktualnego tygodnia
+
+Nie pokazuj od razu całego programu.
+
+Domyślnie użytkownik widzi wyłącznie:
+
+- aktualny tydzień
+- aktualny cykl
+- oś programu
+
+Pozostałe cykle są zwinięte.
+
+=========================================================
+MODEL DANYCH
+=========================================================
+
+Zaprojektuj nowe encje tak, aby były niezależne od historii wykonanych treningów.
+
+Przykładowe encje:
+
+trainingProgram
+
+trainingCycles
+
+trainingWeeks
+
+weeklyTemplates
+
+plannedWorkouts
+
+workoutParameters
+
+workoutExecutions
+
+Program treningowy jest szablonem.
+
+Historia wykonania treningów jest osobną warstwą danych.
+
+=========================================================
+WAŻNE
+=========================================================
+
+Nie przebudowuj istniejących funkcji aplikacji.
+
+Nowa zakładka ma korzystać z obecnych typów aktywności, zestawów ćwiczeń, timera i widoku "Aktualny tydzień".
+
+Przed rozpoczęciem implementacji przeanalizuj obecną architekturę aplikacji i zaproponuj takie rozwiązanie, które będzie zgodne z istniejącym kodem oraz łatwe do dalszej rozbudowy.

@@ -1,0 +1,8 @@
+uploads = []
+generated = []
+
+[[outputs]]
+id = "oFf9RvSfx46a0kGWgTcJh"
+uri = "file://SPECYFIKACJA_APLIKACJI.md"
+type = "text"
+title = "Specyfikacja funkcjonalna — Mój planer treningów"
